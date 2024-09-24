@@ -1,0 +1,23 @@
+{
+  "name": "redwork-whatsapp-service",
+  "version": "0.0.1",
+  "main": "app.js",
+  "scripts": {
+    "start": "npm run build && node dist/app.js",
+    "build": "tsc",
+    "dev": "node --env-file=.env --watch -r ts-node/register src/app.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "WHATSAPP",
+    "BOT"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.6.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  }
+}
