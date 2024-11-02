@@ -1,5 +1,5 @@
 import WAWebJS, { Client, LocalAuth, MessageMedia } from "whatsapp-web.js";
-import Media from "../interfaces/media";
+import Media from "./interfaces/media";
 import WhatsappServiceError from "./errors/whatsapp-serviver-error";
 
 
