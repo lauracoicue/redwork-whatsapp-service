@@ -6,7 +6,8 @@ interface WorkerAttributes {
     name?: string;
     country: string;
     phone: string;
-    lastMessage: Date 
+    lastMessage: Date,
+    modeEdit: boolean;
 }
 
 interface WorkerInstance extends Model<WorkerAttributes>, WorkerAttributes {}
@@ -28,6 +29,11 @@ const Worker = sequelize.define<WorkerInstance>('Worker', {
     lastMessage: {
         type: DataTypes.DATE,
         allowNull: false,
+    },
+    modeEdit: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
     },
 });
 
