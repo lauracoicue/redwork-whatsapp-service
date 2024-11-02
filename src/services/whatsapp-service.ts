@@ -14,18 +14,18 @@ enum WhatsappStatusService {
 class WhatsappService {
     #client: Client;
     #status: WhatsappStatusService = WhatsappStatusService.LOADING;
-
-    static instance: WhatsappService;
-    
-    constructor() { 
+    #idClient: string;
+  
+    constructor(id: string) { 
+        this.#idClient = id;
         this.#client = new Client({
             puppeteer: { headless: true , args: ['--no-sandbox', '--disable-setuid-sandbox']},
-            authStrategy: new LocalAuth(),
+            authStrategy: new LocalAuth(
+            {
+                clientId: this.#idClient,
+            }
+            ),
         });
-        if (WhatsappService.instance) {
-            return WhatsappService.instance;
-        }
-        WhatsappService.instance = this;
         this.#init();
     }
 
@@ -96,7 +96,10 @@ class WhatsappService {
 
 
     qrCode(qrGeneratedCallback: (qr:string) => void): void {
-        this.#client.on('qr', qrGeneratedCallback);
+        this.#client.on('qr', (qr) => {
+            console.log(`QR Code generated for ${this.#idClient}`);
+            qrGeneratedCallback(qr);
+        });
     }
 
     
@@ -118,5 +121,6 @@ class WhatsappService {
 }
 
 
-const whatsappService = new WhatsappService();
-export default whatsappService;
+const userWhatsappService  = new WhatsappService('user');
+const adminWhatsappService = new WhatsappService('admin');
+export { userWhatsappService, adminWhatsappService}
