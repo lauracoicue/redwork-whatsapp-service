@@ -1,6 +1,6 @@
-import WAWebJS, { Client, LocalAuth, MessageMedia } from "whatsapp-web.js";
-import Media from "./interfaces/media";
+import WAWebJS, { Client, LocalAuth, Location, MessageMedia} from "whatsapp-web.js";
 import WhatsappServiceError from "./errors/whatsapp-serviver-error";
+import {MediaMessage, LocationMessage } from "./interfaces/whatsapp-servive-types";
 
 
 enum WhatsappStatusService {
@@ -58,39 +58,41 @@ class WhatsappService {
        }
     } 
 
-    async sendMessage(phone: string, message: string): Promise<void> {
+    async sendMessage(phone: string, message: MediaMessage | string | LocationMessage): Promise<void> {
+
         try {
             if (!phone) {
                 throw new WhatsappServiceError('Phone is required');
             }
-    
-            await this.#client.sendMessage(phone, message);
+
+            if (!message) {
+                throw new WhatsappServiceError('Message is required');
+            }
             
+            if (typeof message === 'string') {
+                await this.#client.sendMessage(phone, message);
+                return;
+            }
+            
+
+            if(typeof message === 'object' && 'latitude' in message && 'longitude' in message) {
+                const location = new Location(message.latitude, message.longitude);
+                await this.#client.sendMessage(phone, location);
+                return;
+            }
+
+            if (typeof message === 'object' && 'base64' in message && 'mimetype' in message) {
+                const media = message.base64 ? new MessageMedia(message.base64, message.mimetype!) :await  MessageMedia.fromUrl(message.url!);
+                await this.#client.sendMessage(phone, media, message.caption ? { caption: message.caption } : undefined);
+                return;
+            }
+
+            throw new WhatsappServiceError('Invalid message type');
         } catch (error) {
            if (error instanceof WhatsappServiceError) {
                throw error;
            }
             throw new WhatsappServiceError(`Error sending message: ${error}`);
-        }
-    }
-
-    async sendMedia(phone: string, media: Media): Promise<void> {
-        try {
-            if (!phone) {
-                throw new WhatsappServiceError('Phone is required');
-            }
-
-            if (!media) {
-                throw new WhatsappServiceError('Media is required');
-            }
-
-            const messageMedia = new MessageMedia(media.mimetype, media.base64, media.caption);
-            await this.#client.sendMessage(phone, messageMedia );
-        } catch (error) {
-            if (error instanceof WhatsappServiceError) {
-                throw error;
-            }
-            throw new WhatsappServiceError(`Error sending media: ${error}`);
         }
     }
 
@@ -123,4 +125,4 @@ class WhatsappService {
 
 const userWhatsappService  = new WhatsappService('user');
 const adminWhatsappService = new WhatsappService('admin');
-export { userWhatsappService, adminWhatsappService}
+export { userWhatsappService, adminWhatsappService, WhatsappStatusService}
