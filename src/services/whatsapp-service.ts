@@ -20,16 +20,10 @@ class WhatsappService {
         this.#idClient = id;
         this.#client = new Client({
             puppeteer: { headless: true , args: ['--no-sandbox', '--disable-setuid-sandbox']},
-            authStrategy: new LocalAuth(
-            {
-                clientId: this.#idClient,
-            }
-            ),
+            authStrategy: new LocalAuth({clientId: this.#idClient}),
         });
         this.#init();
     }
-
-    
 
 
     #init(): void{
