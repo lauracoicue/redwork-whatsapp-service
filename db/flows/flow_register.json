@@ -1,0 +1,89 @@
+{
+    
+    "conversation_flow": [
+        {
+            "step": 1,
+            "message": "¡Hola! Bienvenido/a a RedWork, una plataforma para trabajadores informales. ¡Gracias por unirte! 🤗",
+            "type": "info"
+        },
+        {
+            "step": 2,
+            "message": "Para facilitar el registro, te pedimos que respondas cada pregunta en un mensaje individual. Así podremos procesar mejor tu información. ¡Gracias por tu colaboración! 👍",
+            "type": "info"
+        },
+        {
+            "step": 3,
+            "message": "Para iniciar, necesitamos algunos datos personales. Comencemos con tu *nombre completo*:",
+            "type": "input",
+            "params": "full_name",
+            "validator": {
+                "type": "text",
+                "min_length": 5
+            }
+        },
+        {
+            "step": 4,
+            "message": "¿Cuál es el *trabajo o trabajos* que realizas?",
+            "type": "input",
+            "params": "job",
+            "validator": {
+                "type": "text",
+                "min_length": 5
+            }
+        },
+        {
+            "step": 5,
+            "message": "¿Qué *categoría* describe mejor tu trabajo?",
+            "type": "input",
+            "params": "category",
+            "validator": {
+                "type": "text",
+                "min_length": 5
+            }
+        },
+        {
+            "step": 6,
+           "message": "¡Ahora envianos una *foto de perfil* donde te veas bien! 😊 Esta será la imagen que los clientes verán, así que elige una que te represente.",
+            "type": "file_upload",
+            "params": "job_images",
+            "validator": {
+                "type": "file",
+                "allowed_types": [
+                    "image/jpeg",
+                    "image/png",
+                    "image/jpg"
+                ]
+            }
+        },
+        {
+            "step": 7,
+            "message": "¿Cuál es tu *dirección*?",
+            "type": "input",
+            "params": "address",
+            "validator": {
+                "type": "text",
+                "min_length": 5
+            }
+        },
+        {
+            "step": 8,
+            "message": "Por último, ¿cuál es tu *correo electrónico*?",
+            "type": "input",
+            "params": "email",
+            "validator": {
+                "type": "email"
+            }
+        },
+        {
+            "step": 9,
+            "message": "¡Perfecto! Ahora, te enviaremos un enlace para que configures la *contraseña* de tu cuenta.",
+            "type": "request",
+            "params": "password"
+        },
+        {
+            "step": 10,
+            "message": "¡Felicitaciones! 🎉 Tu registro ha sido exitoso y ahora eres parte de la familia RedWork.",
+            "type": "info"
+        }
+    ]
+}
