@@ -60,7 +60,7 @@ class RegisterModule {
     }
     const step = this.#currentWorkersRegister[phone].step;
     const flow = this.#flows[step];
-    const validation = await validateMessageInput(phone, message, flow.validator);
+    const validation = await validateMessageInput(message, flow.validator);
 
     if (validation){
       await message.reply(validation);
@@ -89,7 +89,7 @@ class RegisterModule {
       if(await this.#completeRegister(phone, callback)) {
         return;
       } 
-      
+
       await this.#processUserMessage(phone, callback);
       return;
     }
