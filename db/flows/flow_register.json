@@ -76,9 +76,13 @@
         },
         {
             "step": 9,
-            "message": "¡Perfecto! Ahora, te enviaremos un enlace para que configures la *contraseña* de tu cuenta.",
-            "type": "request",
-            "params": "password"
+            "message": "¡Perfecto! Ahora, crea una *contraseña* para tu cuenta. Debe tener al menos 6 caracteres.",
+            "type": "input",
+            "params": "password",
+            "validator": {
+                "type": "password",
+                "min_length": 6
+            }
         },
         {
             "step": 10,
