@@ -5,9 +5,13 @@ import { MessageRequest } from '../../../services/interfaces/whatsapp-servive-ty
 
 const sendMessageController = async (req: Request, res: Response) => {  
     try {
-        
         const messageRequestData = req.body as MessageRequest;
-
+        if (!messageRequestData) {
+            res.status(400).send({
+                message: 'Message data is required',
+            });
+            return;
+        }
         const whatsappService = messageRequestData.userType === 'worker' ? adminWhatsappService : userWhatsappService;
 
         if (whatsappService.getStatus() !== WhatsappStatusService.AUTHENTIC) {

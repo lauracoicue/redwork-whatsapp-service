@@ -81,6 +81,12 @@ class WhatsappService {
                 return;
             }
 
+            if (typeof message === 'object' && 'url' in message) {
+                const media = await MessageMedia.fromUrl(message.url!);
+                await this.#client.sendMessage(phone, media, message.caption ? { caption: message.caption } : undefined);
+                return;
+            }
+
             throw new WhatsappServiceError('Invalid message type');
         } catch (error) {
            if (error instanceof WhatsappServiceError) {
