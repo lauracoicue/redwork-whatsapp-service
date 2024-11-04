@@ -22,7 +22,9 @@ cronService(async() => {
     }
     for (const worker in workerRegister){
         if(!messageTimeLast(workerRegister[worker]!.lastMessage)){
-          registerModule.distroyRegister(worker);
+            await adminWhatsappService.sendMessage(worker, `Hola ${workerRegister['full_name'] ?? ''}, tu proceso de registro ha sido reiniciado por inactividad`);
+            await adminWhatsappService.sendMessage(worker, 'Por favor, vuelve a enviar un mensaje para reiniciar el proceso');
+            registerModule.distroyRegister(worker);
         }
     }
 }, '0 */2 * * *');
@@ -47,7 +49,7 @@ const main = async () => {
         try {
             const worker =  await  Worker.findOne({where: {phone: normalizePhoneNumber(message.from).phone}});
             if(worker){
-                await adminWhatsappService.sendMessage(message.from, `Hola ${worker.name ?? ''}, estas en el sistema`);
+                await adminWhatsappService.sendMessage(message.from, `Usuario registrado, informacion:\nid: ${worker.id}\nNombre: ${worker.name}\nTelefono: ${worker.phone}\nUltimo mensaje: ${worker.lastMessage}\nModo edicion: ${worker.modeEdit}, Crado: ${worker.createdAt}`);
                 return;
             } 
             registerModule.startRegister(message.from, (phone, msg) => adminWhatsappService.sendMessage(phone, msg), message);
