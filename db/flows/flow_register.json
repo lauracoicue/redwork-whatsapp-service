@@ -76,13 +76,10 @@
         },
         {
             "step": 9,
-            "message": "¡Perfecto! Ahora, crea una *contraseña* para tu cuenta. Debe tener al menos 6 caracteres.",
-            "type": "input",
-            "params": "password",
-            "validator": {
-                "type": "password",
-                "min_length": 6
-            }
+            "message": "¡Perfecto! Ahora, ingresa al siguiente enlace para establecer tu contraseña y completar tu registro, el enlace expirará en 5 minutos",
+            "type": "request",
+            "params": "password"
+            
         },
         {
             "step": 10,
