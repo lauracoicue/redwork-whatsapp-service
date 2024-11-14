@@ -8,10 +8,19 @@ import validateMessageInput from "./utils/validations";
 
 type Callback = (phone: string, message: string) => Promise<void>;
 
+interface CompletedRegister {
+  [phone: string]: {
+    createdAt: Date;
+    active: boolean;
+    value?: string;
+  }
+}
+
 class RegisterModule {
   #flows: ConversationFlow[] = [];
   #currentWorkersRegister: CurrentWorkersRegister = {};
   #newWorkers: NewWorker = {};
+  #pendingRegister: CompletedRegister = {};
 
   constructor() {
     const data = fs.readFileSync(`db/flows/flow_register.json`);
@@ -47,7 +56,23 @@ class RegisterModule {
     if (!this.#currentWorkersRegister[phone].awaitingInput) {
       await callback(phone, flow.message);
       this.#currentWorkersRegister[phone].awaitingInput = true;
+
+      if (flow.type === "request") {
+        await this.#sendUrlPassword(phone, callback);
+      }
     }
+  }
+
+  async #sendUrlPassword(phone: string, callback: Callback) {
+    if (!this.#pendingRegister[phone]) {
+      this.#pendingRegister[phone] = {
+        createdAt: new Date(),
+        active: false,
+      }
+    }
+
+    console.log(this.#pendingRegister[phone]);
+    await callback(phone, `https://4ld384b5-3001.use2.devtunnels.ms/api/register?id=${phone}`);
   }
 
   async #processFlowStep(phone: string, callback: Callback, message: Message) {
@@ -79,6 +104,16 @@ class RegisterModule {
       this.#newWorkers[phone][flow.params!] = media.data;
     }
 
+    if (flow.type === "request") {
+      if (this.pendingRegister[phone].active) {
+        this.#newWorkers[phone][flow.params!] = this.pendingRegister[phone].value!;
+      }else {
+        await callback(phone, 'Estamos esperan que establezcas tu contraseña, por favor sigue el siguiente enlace para continuar con el registro');
+        await this.#sendUrlPassword(phone, callback);
+        return;
+      }
+    }
+
     if (this.currentWorkersRegister[phone].awaitingInput) {
       this.#currentWorkersRegister[phone].awaitingInput = false;
       this.#currentWorkersRegister[phone].step += 1;
@@ -106,6 +141,7 @@ class RegisterModule {
         });
         delete this.#newWorkers[phone];
         delete this.#currentWorkersRegister[phone];
+        delete this.#pendingRegister[phone];
         await callback(phone, this.#flows[this.#flows.length - 1].message);
         return true;
       } catch (error) {
@@ -131,7 +167,19 @@ class RegisterModule {
   distroyRegister(phone: string) {
     delete this.#currentWorkersRegister[phone];
     delete this.#newWorkers[phone];
+    delete this.#pendingRegister[phone];
     return;
+  }
+
+  setPasswordByPhone(phone: string, password: string) {
+    this.#pendingRegister[phone].active = true;
+    this.#pendingRegister[phone].value = password;
+    return;
+  }
+
+  get pendingRegister() {
+    console.log(this.#pendingRegister);
+    return this.#pendingRegister;
   }
 }
 const registerModule = new RegisterModule();
