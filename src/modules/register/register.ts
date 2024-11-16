@@ -57,7 +57,7 @@ class RegisterModule {
       await callback(phone, flow.message);
       this.#currentWorkersRegister[phone].awaitingInput = true;
 
-      if (flow.type === "request") {
+      if (flow.type === "link") {
         await this.#sendUrlPassword(phone, callback);
       }
     }
@@ -72,7 +72,7 @@ class RegisterModule {
     }
 
     console.log(this.#pendingRegister[phone]);
-    await callback(phone, `https://4ld384b5-3001.use2.devtunnels.ms/api/register?id=${phone}`);
+    await callback(phone, `http://localhost:3001/api/register?id=${phone}`);
   }
 
   async #processFlowStep(phone: string, callback: Callback, message: Message) {
@@ -104,7 +104,15 @@ class RegisterModule {
       this.#newWorkers[phone][flow.params!] = media.data;
     }
 
-    if (flow.type === "request") {
+    if (flow.type === "location") {
+      if (!this.#newWorkers[phone][flow.params!]) {
+        this.#newWorkers[phone][flow.params!] = "";
+      }
+      const locationString = `${message.location.latitude},${message.location.longitude}`;
+      this.#newWorkers[phone][flow.params!] = locationString;
+    }
+
+    if (flow.type === "link") {
       if (this.pendingRegister[phone].active) {
         this.#newWorkers[phone][flow.params!] = this.pendingRegister[phone].value!;
       }else {
@@ -178,7 +186,6 @@ class RegisterModule {
   }
 
   get pendingRegister() {
-    console.log(this.#pendingRegister);
     return this.#pendingRegister;
   }
 }

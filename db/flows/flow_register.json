@@ -57,12 +57,11 @@
         },
         {
             "step": 7,
-            "message": "¿Cuál es tu *dirección*?",
-            "type": "input",
-            "params": "address",
+            "message": "Por favor, comparte tu *ubicación* actual para que los clientes puedan encontrarte más fácilmente. (La ubicación debe ser aproximada a zona de trabajo)",
+            "type": "location",
+            "params": "location",
             "validator": {
-                "type": "text",
-                "min_length": 5
+                "type": "location"
             }
         },
         {
@@ -77,7 +76,7 @@
         {
             "step": 9,
             "message": "¡Perfecto! Ahora, ingresa al siguiente enlace para establecer tu contraseña y completar tu registro, el enlace expirará en 5 minutos",
-            "type": "request",
+            "type": "link",
             "params": "password"
             
         },
