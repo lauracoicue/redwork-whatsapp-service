@@ -54,6 +54,12 @@ const  validateMessageInput = async (userMessage: Message, validator: Validator 
         }
 
         return;
+
+      case 'location':
+        if (!userMessage.location){
+          return 'Debes enviar una ubicación';
+        }
+        return;
       default:
         return 'Tipo de dato no soportado';
     }
