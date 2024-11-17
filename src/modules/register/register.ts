@@ -6,7 +6,7 @@ import { locationParser, normalizePhoneNumber } from "../../utils/number-paser";
 import { CurrentWorkersRegister, NewWorker } from "./interfaces/register-types";
 import validateMessageInput from "./utils/validations";
 import { hostBackend, hostService } from "../../config/config";
-import { fetchData } from "./services/fetch_data";
+import { fetchData } from "../../services/fetch_data";
 
 type Callback = (phone: string, message: string) => Promise<void>;
 
