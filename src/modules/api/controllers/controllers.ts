@@ -4,6 +4,7 @@ import { normalizePhoneNumber, parsePhoneNumber } from '../../../utils/number-pa
 import { MessageRequest } from '../../../services/interfaces/whatsapp-servive-types';
 import registerModule from '../../register/register';
 import Worker from '../../../models/worker';
+import { hostFrontend } from '../../../config/config';
 
 const sendMessageController = async (req: Request, res: Response) => {  
     try {
@@ -90,7 +91,7 @@ const registerController = async (req: Request, res: Response) => {
         const password = req.method === 'POST' ? req.body.password : undefined;
 
         if (!phone) {
-            renderError(res, 'Error al establecer contraseña', 'El número de teléfono es requerido', 'http://localhost:3000/');
+            renderError(res, 'Error al establecer contraseña', 'El número de teléfono es requerido', hostFrontend);
             return;
         }
 
@@ -101,7 +102,7 @@ const registerController = async (req: Request, res: Response) => {
 
             if (worker) {
                 renderSecurityPassword(res,{
-                     title:'Usuario registrado', message: `El usuario ${worker.name} ya se encuentra registrado`, link: 'http://localhost:3000/',
+                     title:'Usuario registrado', message: `El usuario ${worker.name} ya se encuentra registrado`, link: hostFrontend,
                      id: undefined, action: undefined
                 });
                 return;
@@ -114,7 +115,7 @@ const registerController = async (req: Request, res: Response) => {
 
             if (register && register.active){
                 renderSecurityPassword(res, {
-                    title: 'Ya se ha establecido la contraseña', message: 'Ya se ha establecido la contraseña para este número de teléfono', link: 'http://localhost:3000/', id: undefined, action: undefined});
+                    title: 'Ya se ha establecido la contraseña', message: 'Ya se ha establecido la contraseña para este número de teléfono', link: hostFrontend, id: undefined, action: undefined});
             }
 
             renderSecurityPassword(res, {
@@ -129,17 +130,17 @@ const registerController = async (req: Request, res: Response) => {
 
         if (req.method === 'POST') {
             if (!password) {
-                renderError(res, 'Error al establecer contraseña', 'La contraseña es requerida', 'http://localhost:3000/');
+                renderError(res, 'Error al establecer contraseña', 'La contraseña es requerida', hostFrontend);
                 return;
             }
 
             if (!register) {
-                renderError(res, 'Error al establecer contraseña', 'El número de teléfono no se encuentra registrado', 'http://localhost:3000/');
+                renderError(res, 'Error al establecer contraseña', 'El número de teléfono no se encuentra registrado', hostFrontend);
                 return;
             }
 
             if (isRequestExpired(register.createdAt)) {
-                renderError(res, 'Error al establecer contraseña', 'El tiempo para establecer la contraseña ha expirado, por favor vuelva a escribir', 'https:wa.me/573002222222');
+                renderError(res, 'Error al establecer contraseña', 'El tiempo para establecer la contraseña ha expirado, por favor vuelva a escribir', 'https:wa.me/573002222222?text=Establecer%20contraseña');
                 return;
             }
 

@@ -2,9 +2,11 @@ import * as fs from "fs";
 import { Message } from "whatsapp-web.js";
 import Worker from "../../models/worker";
 import { Convert, ConversationFlow } from "../../models/flows";
-import { normalizePhoneNumber } from "../../utils/number-paser";
+import { locationParser, normalizePhoneNumber } from "../../utils/number-paser";
 import { CurrentWorkersRegister, NewWorker } from "./interfaces/register-types";
 import validateMessageInput from "./utils/validations";
+import { hostBackend, hostService } from "../../config/config";
+import { fetchData } from "./services/fetch_data";
 
 type Callback = (phone: string, message: string) => Promise<void>;
 
@@ -72,7 +74,7 @@ class RegisterModule {
     }
 
     console.log(this.#pendingRegister[phone]);
-    await callback(phone, `http://localhost:3001/api/register?id=${phone}`);
+    await callback(phone, `${hostService}/api/register?id=${phone}`);
   }
 
   async #processFlowStep(phone: string, callback: Callback, message: Message) {
@@ -101,7 +103,7 @@ class RegisterModule {
         this.#newWorkers[phone][flow.params!] = "";
       }
       const media = await message.downloadMedia();
-      this.#newWorkers[phone][flow.params!] = media.data;
+      this.#newWorkers[phone][flow.params!] = `data:${media.mimetype};base64,${media.data}`;
     }
 
     if (flow.type === "location") {
@@ -147,6 +149,27 @@ class RegisterModule {
           lastMessage: new Date(),
           createdAt: new Date(),
         });
+        console.log(this.#newWorkers[phone]["photo"].substring(0, 50));
+
+        await fetchData({
+          method: "POST",
+          url: `${hostBackend}/api/workers/register`,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            fullName: this.#newWorkers[phone]["full_name"]!,
+            phone: formattedPhoneNumber.phone,
+            country: formattedPhoneNumber.country,
+            email: this.#newWorkers[phone]["email"]!,
+            password: this.#pendingRegister[phone].value!,
+            photo: this.#newWorkers[phone]["photo"]! ,
+            job: this.#newWorkers[phone]["job"]!,
+            category: this.#newWorkers[phone]["category"]!,
+            workImages: [],
+            location: locationParser(this.#newWorkers[phone]["location"]!),
+        }});
+
         delete this.#newWorkers[phone];
         delete this.#currentWorkersRegister[phone];
         delete this.#pendingRegister[phone];
@@ -156,6 +179,7 @@ class RegisterModule {
         console.error(`Error creating worker: ${error}`);
         await callback(phone, "Error al registrar la información");
         this.distroyRegister(phone);
+        await Worker.destroy({ where: { phone: normalizePhoneNumber(phone).phone } });
         this.#currentWorkersRegister[phone] = {
           step: 0,
           awaitingInput: false,
