@@ -1,6 +1,6 @@
 import { Convert, Validator } from '../../../models/flows';
 import { Message } from "whatsapp-web.js";
-
+import { validateCategory } from './categoryValidator';
 
 const  validateMessageInput = async (userMessage: Message, validator: Validator | undefined): Promise<string | undefined> => {
    
@@ -60,6 +60,15 @@ const  validateMessageInput = async (userMessage: Message, validator: Validator 
           return 'Debes enviar una ubicación';
         }
         return;
+      
+      case 'category':
+        const selectedCategory = userMessage.body.trim();
+        const validationError = validateCategory(selectedCategory);
+        if (validationError) {
+          return validationError;
+        }
+        return;
+
       default:
         return 'Tipo de dato no soportado';
     }

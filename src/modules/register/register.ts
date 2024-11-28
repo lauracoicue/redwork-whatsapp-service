@@ -7,6 +7,7 @@ import { CurrentWorkersRegister, NewWorker } from "./interfaces/register-types";
 import validateMessageInput from "./utils/validations";
 import { hostBackend, hostService } from "../../config/config";
 import { fetchData } from "../../services/fetch_data";
+import { validateCategory, validCategories } from './utils/categoryValidator';
 
 type Callback = (phone: string, message: string) => Promise<void>;
 
@@ -97,6 +98,20 @@ class RegisterModule {
       }
       this.#newWorkers[phone][flow.params!] += message.body.toLowerCase();
     }
+
+    if (flow.type === "input" && flow.params === "category") {
+      const userInput = message.body.trim();
+      const validationError = validateCategory(userInput);
+    
+      if (validationError) {
+        await callback(phone, validationError);
+        return;
+      }
+    
+      const selectedCategory = validCategories[parseInt(userInput, 10) - 1];
+      this.#newWorkers[phone][flow.params!] = selectedCategory;
+    }
+    
 
     if (flow.type === "file_upload") {
       if (!this.#newWorkers[phone][flow.params!]) {

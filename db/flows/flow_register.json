@@ -33,12 +33,11 @@
         },
         {
             "step": 5,
-            "message": "¿Qué *categoría* describe mejor tu trabajo?",
+            "message": "¿Qué *categoría* describe mejor tu trabajo?\n1 - Construcción\n2 - Mantenimiento de vehículos\n3 - Arte y diseño\n4 - Salud y bienestar\n5 - Educación\n6 - Servicios de transporte\n7 - Servicios del hogar\n8 - Servicios tecnológicos\n9 - Servicios administrativos\n10 - Servicios legales\n11 - Servicios estéticos",
             "type": "input",
             "params": "category",
             "validator": {
-                "type": "text",
-                "min_length": 5
+              "type": "category"
             }
         },
         {
