@@ -1,0 +1,181 @@
+---
+console.log ("javascript")
+
+---
+
+<header class="header whapper py-1 lg:flex lg:justify-between lg:items-center">
+    <div class="flex items-center justify-between ">
+        <a class="logo inline-flex items-center pl-4 float-left" href="/">
+            <img src="/logo.jpg" loading="eager" alt="Logo_redwork" width="150" height="33" decoding="async">
+        </a>
+        <button class="abrir-menu" id="abrir">|||</button>
+    </div>
+    <nav class="nav" id="nav">
+        <button class="cerrar-menu text-black ms-3" id="cerrar"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+        </button>
+        <ul class="menu bg-secondary-100 [&>li]:mx-4 lg:flex justify-center text-center ">
+            <li class="item-menu group">
+                <div class="Conoce-default">
+                    <a class="text-red-500" href="http://localhost:4321/SobreNosotros">Sobre nosotros</a>
+                </div>
+            </li>
+            <li class="item-menu group">
+                <div class="Terminos-default">
+                    <a class="text-red-500" href="http://localhost:4321/Terminos">Terminos y condiciones</a>
+                </div>
+            </li>
+            <li class="item-menu group">
+                <div class="button Politica-default"> 
+                    <a class="text-red-500" href="http://localhost:4321/Politicas">Politica de privacidad</a>
+                </div>
+            </li>
+            <li class="item-menu group">
+                <div class="button Manual-default">
+                    <a class="text-red-500" href="http://localhost:4321/Manual">Manual de usuario</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>
+<style is:global>
+
+.header {
+    width: 100%;
+    overflow:hidden;
+    padding: 0.2rem 1rem;
+    
+}
+.logo{
+    max-width: 6rem;
+}
+.whapper{
+    width: 100%;
+    max-width: 1500px;
+    margin:auto;
+    overflow:hidden;
+}
+.nav{
+    float:right;
+    line-height: 3rem;
+    height: 100%;
+}
+.menu{
+    list-style-type: none;
+    display: flex;
+    gap:1rem;
+}
+.cerrar-menu{
+    display: none;
+    float: left;
+}
+.abrir-menu{ 
+    display: none;
+    float: right;;
+    transform: rotate(90deg);
+}
+
+@media (max-width: 1024px) {
+
+    button {
+        margin: 10px;
+    }
+    .abrir-menu, 
+    .cerrar-menu{
+        display:block;
+    }
+
+    .nav {
+        position: absolute; /* Fijo para que se superponga en la pantalla */
+        opacity: 0; /* Oculto por defecto */
+        top: 50%; /* Centro vertical */
+        left: 50%; /* Centro horizontal */
+        transform: translate(-50%, -50%); /* Ajusta para centrar */
+        width: 300px; /* Ancho del rectángulo */
+        height: 500px; /* Altura del rectángulo */
+        background-color: red; /* Fondo rojo */
+        z-index: 1000; /* Valor alto para que se superponga sobre otros elementos */
+        display: flex; /* Oculto por defecto */
+        color: white; /* Texto en blanco para contraste */
+        text-align: center; /* Centrar el texto */
+        padding: 20px; /* Espacio interno */
+        border-radius: 10px; /* Bordes redondeados */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        visibility: hidden;
+        
+    }
+
+    .nav.visible {
+        display: flex; /* Muestra el menú cuando tiene la clase 'visible' */
+    }
+
+    .back-btn {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background-color: transparent;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 1100;
+    }
+
+    .buscador {
+        position: relative; /* Posición relativa para 'z-index' */
+        z-index: 0; /* Valor menor para estar debajo del menú */
+    }
+    .nav.visible{
+        opacity: 1;
+        visibility: visible;
+    }
+    .menu{
+        flex-direction: column;
+        align-items: end;
+    }
+    .menu li a{
+        color: white;
+    }
+
+}
+</style>
+
+<script>
+    const nav = document.querySelector("#nav");
+    const abrir = document.querySelector("#abrir");
+    const cerrar = document.querySelector("#cerrar");
+    const buscador = document.querySelectorAll(".buscador");
+
+    if (abrir) {
+    abrir.addEventListener("click", () => {
+        nav?.classList.add("visible");
+        buscador.forEach((element) => {
+            element.classList.add("-z-10");
+        });
+    });
+}
+    if (cerrar) {
+    cerrar.addEventListener("click", () => {
+        nav?.classList.remove("visible");
+        buscador.forEach((element) => {
+            element.classList.remove("-z-10");
+        });
+    });
+}  
+document.addEventListener("DOMContentLoaded", function() { 
+    const cerrarButton = document.getElementById("cerrar");
+    if (cerrarButton) {
+        cerrarButton.addEventListener("click", function() { 
+            window.location.href = 'http://localhost:4321'; 
+        });
+    }
+});
+</script>
+
+ 
+  
+  
