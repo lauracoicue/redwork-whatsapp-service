@@ -4,8 +4,26 @@ import { normalizePhoneNumber, parsePhoneNumber } from '../../../utils/number-pa
 import { MessageRequest } from '../../../services/interfaces/whatsapp-servive-types';
 import registerModule from '../../register/register';
 import Worker from '../../../models/worker';
-import { hostFrontend } from '../../../config/config';
-import { timeStamp } from 'console';
+import { hostBackend, hostFrontend } from '../../../config/config';
+import chatBot from '../../menu/menu';
+import { render } from 'ejs';
+
+const renderSecurityPassword = (res: Response, params:{title: string, message: string, link: string | undefined, action: string | undefined, id: string | undefined}) => {
+    console.log(params);
+    res.status(200).render('security-password', { ...params });
+};
+
+const renderError = (res: Response, title: string, message: string, link: string) => {
+    res.status(400).render('error', { title, message, link });
+};
+
+
+const isRequestExpired = (createdAt: Date, expirationTime: number = 5 * 60 * 1000) => {
+    return new Date().getTime() - createdAt.getTime() > expirationTime;
+};
+
+
+
 
 const sendMessageController = async (req: Request, res: Response) => {  
     try {
@@ -69,33 +87,72 @@ const statusServiceController = async (req: Request, res: Response) => {
     }
 };
 
+const deleteAccountController = async (req: Request, res: Response) => {
+    const id = req.body.id as string | undefined;
+    const password = req.body.password as string | undefined;
 
-const securityPasswordController = async (req: Request, res: Response) => {
-    if (req.method === 'GET'){
-        res.render('security-password', {
-            title: 'Establecer contraseña',
-            message: 'Por favor establezca una contraseña para acceder a la aplicación', 
-        });
+    if (!id || !password) {
+        renderError(res, 'Error al eliminar cuenta', 'El número de teléfono y la contraseña son requeridos', hostFrontend);
         return;
     }
 
-    const password = req.body.password;
+    const worker = await Worker.findOne({ where: { phone: normalizePhoneNumber(id).phone } });
 
+    if (!worker) {
+        renderError(res, 'Error al eliminar cuenta', 'El número de teléfono no se encuentra registrado', hostFrontend);
+        return;
+    }
+
+    try{
+       await fetch(`${hostBackend}/api/workers/${worker.phone}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id }),
+        })
+        worker?.destroy();
+        renderSecurityPassword(res, {
+            title: 'Cuenta eliminada', message: 'Tu cuenta ha sido eliminada con éxito', link: hostFrontend, id: undefined, action: undefined
+        });
+
+        return;
+    }catch (error) {
+        res.status(500).send({ message: `Error deleting account: ${error}` });
+        
+    } 
+}
+
+
+const securityPasswordController = async (req: Request, res: Response) => {
+    const id = req.query.id as string | undefined;
+
+    if (!id) {
+        renderError(res, 'Error al establecer contraseña', 'El número de teléfono es requerido', hostFrontend);
+        return;
+    }
+
+
+
+    if(!chatBot.confirmDeleteAccount(id)){
+        renderError(res, 'Error al eliminar cuenta', 'El número de teléfono no se encuentra registrado o no ha solicitado la eliminacion', hostFrontend);
+        return;
+    }
+
+    if(isRequestExpired(chatBot.expireDeleteAccount(id))){
+        renderError(res, 'Error al eliminar cuenta', 'El tiempo para eliminar la cuenta ha expirado, por favor vuelva a escribir', 'https:wa.me/573002222222');
+        return;
+    }
+
+
+    renderSecurityPassword(res, {
+        title: 'Eliminar cuenta', message: '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.', link: undefined, action: '/api/delete-account', id});
+    
+    return;
 };
 
 
-const renderError = (res: Response, title: string, message: string, link: string) => {
-    res.status(400).render('error', { title, message, link });
-};
 
-const renderSecurityPassword = (res: Response, params:{title: string, message: string, link: string | undefined, action: string | undefined, id: string | undefined}) => {
-    console.log(params);
-    res.status(200).render('security-password', { ...params });
-};
-
-const isRequestExpired = (createdAt: Date, expirationTime: number = 5 * 60 * 1000) => {
-    return new Date().getTime() - createdAt.getTime() > expirationTime;
-};
 
 const registerController = async (req: Request, res: Response) => {
     try {

@@ -6,6 +6,7 @@ import messageTimeLast from "./utils/message-timelast";
 import { normalizePhoneNumber } from "./utils/number-paser";
 import { adminWhatsappService } from "./services/whatsapp-service";
 import registerModule from "./modules/register/register";
+import chatBot from "./modules/menu/menu";
 
 
 initApi();
@@ -36,7 +37,7 @@ const main = async () => {
         qrcode.generate(qr, {small: true});
     });
 
-
+    
     adminWhatsappService.onMessage( async(message) => {
 
         if ((!message.body && !message.hasMedia) || message.hasReaction) {
@@ -49,12 +50,11 @@ const main = async () => {
         try {
             const worker =  await  Worker.findOne({where: {phone: normalizePhoneNumber(message.from).phone}});
             if(worker){
-                await adminWhatsappService.sendMessage(message.from, `Usuario registrado, informacion:\nid: ${worker.id}\nNombre: ${worker.name}\nTelefono: ${worker.phone}\nUltimo mensaje: ${worker.lastMessage}\nModo edicion: ${worker.modeEdit}, Crado: ${worker.createdAt}`);
+                const messageResponse = chatBot.handleMessage(message.from, message);
+                await adminWhatsappService.sendMessage(message.from, messageResponse);
                 return;
             } 
             registerModule.startRegister(message.from, (phone, msg) => adminWhatsappService.sendMessage(phone, msg), message);
- 
-
         } catch (error) {
             console.error(`Error processing message: ${error}`);
             return;

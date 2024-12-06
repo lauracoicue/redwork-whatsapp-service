@@ -1,7 +1,16 @@
+import { Message } from "whatsapp-web.js";
+import { hostService } from "../../config/config";
+
 type Module = 'profile' | 'reports' | 'password' | 'deleteAccount' | null;
 
 interface UserState {
   currentFlow: Module;
+}
+
+interface DeleteAccount {
+  currentFlow: number;
+  awaitConfirm: boolean;
+  lastMessage: Date;
 }
 
 class ChatBot {
@@ -14,13 +23,15 @@ class ChatBot {
 
 
   #userStates: { [phone: string]: UserState };
+  #currentFlowMessage: { [phone: string]: DeleteAccount}; 
 
   constructor() {
     this.#userStates = {};
+    this.#currentFlowMessage = {};
   }
 
  
-  handleMessage(phone: string, message: string): string {
+  handleMessage(phone: string, message: Message): string {
    
     if (!(phone in this.#userStates)) {
       this.#userStates[phone] = { currentFlow: null };
@@ -28,11 +39,11 @@ class ChatBot {
     }
 
     const userState = this.#userStates[phone];
-    console.log(userState);
-
     if (!userState.currentFlow) {
-        
-        const optionIndex = parseInt(message);
+        if (!message.body) {
+            return 'Por favor, selecciona una opción válida.';
+        }
+        const optionIndex = parseInt(message.body);
         if (isNaN(optionIndex)) {
             return 'Opción inválida. Por favor, selecciona una opción válida.';
         }
@@ -66,7 +77,7 @@ class ChatBot {
     return `Redirigiendo al módulo: ${this.#mainMenuOptions[optionIndex - 1]}`;
   }
 
-  #redirectToModule(phone: string, message: string): string {
+  #redirectToModule(phone: string, message: Message): string {
     const userState = this.#userStates[phone];
 
     switch (userState.currentFlow) {
@@ -77,6 +88,8 @@ class ChatBot {
       case 'password':
         return `Manejando el módulo de cambio de contraseña para el usuario ${phone}. Recibido: ${message}`;
       case 'deleteAccount':
+
+
         return `Manejando el módulo de eliminación de cuenta para el usuario ${phone}. Recibido: ${message}`;
       default:
         userState.currentFlow = null;
@@ -92,7 +105,65 @@ class ChatBot {
     this.#userStates[phone].currentFlow = null;
     return 'Volviendo al menú principal.';
   }
+
+  async deleteAccount(phone: string, message:string): Promise<string> {
+    if(!this.#currentFlowMessage[phone]){
+      this.#currentFlowMessage[phone] = {
+        currentFlow: 0,
+        awaitConfirm: false,
+        lastMessage: new Date(),
+      }
+    }
+   const flowDeleteAccount = [
+      {
+        message: '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.',
+        options: ['1. Sí', '2. No'],
+      },
+      {
+      message: 'Para confirmar la eliminación de tu cuenta, ingresa al siguiente enlace:',
+      },
+      {
+        message: 'Tu cuenta ha sido eliminada con éxito. ¡Gracias por usar nuestros servicios!',
+      },
+      {
+        message: 'Eliminación de cuenta cancelada.',
+      }
+   ];
+
+    const currentFlow = this.#currentFlowMessage[phone];
+    if (!currentFlow.awaitConfirm) {
+        currentFlow.awaitConfirm = true;
+        return flowDeleteAccount[0].message;
+    }
+
+    if (currentFlow.currentFlow === 0) {
+      if (message === '1') {
+        currentFlow.currentFlow = 1;
+        const phoneUrlencoded = encodeURIComponent(phone);
+        return flowDeleteAccount[1].message + `\n${hostService}/delete-account?id=${phoneUrlencoded}`;
+      }  
+      if (message === '2') {
+        delete this.#currentFlowMessage[phone];
+        delete this.#userStates[phone];
+        return flowDeleteAccount[3].message;
+      }
+      return 'Por favor, selecciona una opción válida.';
+  }
+
+  if (currentFlow.currentFlow === 1 && currentFlow.awaitConfirm) {
+    if (message === 'confirmar') {
+      currentFlow.currentFlow = 2;
+      delete this.#currentFlowMessage[phone];
+      delete this.#userStates[phone];
+      return flowDeleteAccount[2].message;
+    }
+    return 'Por favor, ingresa "confirmar" para confirmar la eliminación de tu cuenta.';
+  }
+
+  return 'Error: Algo salió mal. Por favor, intenta de nuevo.';
 }
+}
+
 
 
 const chatBot = new ChatBot();
