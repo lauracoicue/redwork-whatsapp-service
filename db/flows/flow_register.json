@@ -81,7 +81,7 @@
         },
         {
             "step": 10,
-            "message": "¡Felicitaciones! 🎉 Tu registro ha sido exitoso y ahora eres parte de la familia RedWork.",
+            "message": "¡Felicitaciones! 🎉 Tu registro ha sido exitoso y ahora eres parte de la familia RedWork.\nAhora envianos un mensaje, para activar el menú.",
             "type": "info"
         }
     ]
