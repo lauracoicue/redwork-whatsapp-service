@@ -3,6 +3,7 @@ interface MessageRequest {
     country: string;
     message: string | LocationMessage  | MediaMessage;
     userType: 'worker' | 'user'; 
+    typeRequest: 'confirm' | 'notificate';
 }
 
 

@@ -5,6 +5,7 @@ import { MessageRequest } from '../../../services/interfaces/whatsapp-servive-ty
 import registerModule from '../../register/register';
 import Worker from '../../../models/worker';
 import { hostFrontend } from '../../../config/config';
+import { timeStamp } from 'console';
 
 const sendMessageController = async (req: Request, res: Response) => {  
     try {
@@ -23,7 +24,18 @@ const sendMessageController = async (req: Request, res: Response) => {
             });
             return;
         }
-        const { phone, country, message } = messageRequestData;      
+        const { phone, country, message, typeRequest } = messageRequestData;   
+           
+        if (typeRequest === 'confirm') {
+            const worker = await Worker.findOne({ where: { phone: phone } });
+            if (!worker) {
+                res.status(404).send({
+                    message: 'Worker not found',
+                });
+                return;
+            }
+            worker.awaitAvailability = true;
+        }
 
         if (!phone || !country || !message) {
             res.status(400).send({
@@ -33,6 +45,7 @@ const sendMessageController = async (req: Request, res: Response) => {
         }
 
         await whatsappService.sendMessage(parsePhoneNumber(phone, country), message);
+        
         res.status(200).send({
             message: 'Message sent successfully',
         });
@@ -42,7 +55,6 @@ const sendMessageController = async (req: Request, res: Response) => {
         });
     }
 };
-
 
 const statusServiceController = async (req: Request, res: Response) => {
     try {
@@ -155,6 +167,7 @@ const registerController = async (req: Request, res: Response) => {
         res.status(500).send({ message: `Error registering user: ${error}` });
     }
 };
+
 
 
 
