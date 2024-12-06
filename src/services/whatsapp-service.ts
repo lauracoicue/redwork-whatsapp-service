@@ -33,6 +33,12 @@ class WhatsappService {
                 throw new WhatsappServiceError('Error authenticating whatsapp service');
             });
 
+
+            this.#client.on('ready', () => {
+                console.log(`Whatsapp service ready for ${this.#idClient}`);    
+            });
+
+
             this.#client.on('authenticated', () => {
                 this.#status = WhatsappStatusService.AUTHENTIC;
             });
