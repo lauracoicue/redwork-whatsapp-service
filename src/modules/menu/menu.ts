@@ -140,7 +140,7 @@ class ChatBot {
       if (message === '1') {
         currentFlow.currentFlow = 1;
         const phoneUrlencoded = encodeURIComponent(phone);
-        return flowDeleteAccount[1].message + `\n${hostService}/delete-account?id=${phoneUrlencoded}`;
+        return flowDeleteAccount[1].message + `\n${hostService}/security-password?id=${phoneUrlencoded}`;
       }  
       if (message === '2') {
         delete this.#currentFlowMessage[phone];
@@ -162,6 +162,14 @@ class ChatBot {
 
   return 'Error: Algo salió mal. Por favor, intenta de nuevo.';
 }
+
+  expireDeleteAccount(phone: string): Date {
+    return this.#currentFlowMessage[phone].lastMessage;
+  }
+
+  confirmDeleteAccount(phone: string): boolean {
+    return this.#currentFlowMessage[phone] && this.#currentFlowMessage[phone].awaitConfirm;
+  }
 }
 
 
