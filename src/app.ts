@@ -3,10 +3,12 @@ import qrcode from 'qrcode-terminal';
 import Worker from "./models/worker";
 import cronService from "./services/cron-job";
 import messageTimeLast from "./utils/message-timelast";
-import { normalizePhoneNumber } from "./utils/number-paser";
+import { normalizePhoneNumber, parsePhoneNumber } from "./utils/number-paser";
 import { adminWhatsappService } from "./services/whatsapp-service";
 import registerModule from "./modules/register/register";
 import chatBot from "./modules/menu/menu";
+import { updateWorkerAvailability } from "./modules/api/controllers/controllers";
+import { time } from "console";
 
 
 initApi();
@@ -50,6 +52,22 @@ const main = async () => {
         try {
             const worker =  await  Worker.findOne({where: {phone: normalizePhoneNumber(message.from).phone}});
             if(worker){
+                if (worker.awaitAvailability && messageTimeLast(worker.lastMessage, 2.5)){
+                    if (message.body === '1'){
+                        await Worker.update({awaitAvailability: false}, {where: {phone: worker.phone}});
+                        updateWorkerAvailability(worker.phone, true);
+                        await adminWhatsappService.sendMessage(parsePhoneNumber(worker.phone, worker.country), 'Tu disponibilidad ha sido actualizada');
+                        return;
+                    } else if (message.body === '2'){
+                        await Worker.update({awaitAvailability: false}, {where: {phone: worker.phone}});
+                        updateWorkerAvailability(worker.phone, false);
+                        await adminWhatsappService.sendMessage(parsePhoneNumber(worker.phone, worker.country), 'Tu disponibilidad ha sido actualizada');
+                        return;
+                    } else {
+                        await adminWhatsappService.sendMessage(parsePhoneNumber(worker.phone, worker.country), 'Por favor, elige una opción válida');
+                        return;
+                    }
+                }
                 const messageResponse = chatBot.handleMessage(message.from, message);
                 await adminWhatsappService.sendMessage(message.from, messageResponse);
                 return;
@@ -58,9 +76,7 @@ const main = async () => {
         } catch (error) {
             console.error(`Error processing message: ${error}`);
             return;
-        }
-
-       
+        }  
 });
 }
 

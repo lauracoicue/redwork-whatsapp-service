@@ -163,6 +163,7 @@ class RegisterModule {
           modeEdit: false,
           lastMessage: new Date(),
           createdAt: new Date(),
+          awaitAvailability: false,
         });
         console.log(this.#newWorkers[phone]["photo"].substring(0, 50));
 

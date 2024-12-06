@@ -9,6 +9,7 @@ interface WorkerAttributes {
     lastMessage: Date,
     modeEdit: boolean;
     createdAt: Date;
+    awaitAvailability: boolean;
 }
 
 interface WorkerInstance extends Model<WorkerAttributes>, WorkerAttributes {}
@@ -40,6 +41,11 @@ const Worker = sequelize.define<WorkerInstance>('Worker', {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW,
+    },
+    awaitAvailability: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
     },
 });
 

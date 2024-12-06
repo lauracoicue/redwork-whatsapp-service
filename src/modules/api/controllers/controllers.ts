@@ -42,7 +42,23 @@ const sendMessageController = async (req: Request, res: Response) => {
             });
             return;
         }
-        const { phone, country, message } = messageRequestData;      
+        const { phone, country, message, typeRequest } = messageRequestData;   
+        if (typeRequest === 'confirm') {
+            console.log('confirmar');
+            const worker = await Worker.findOne({ where: { phone: phone } });
+            if (!worker) {
+                console.log('worker not found');
+                res.status(404).send({
+                    message: 'Worker not found',
+                });
+                return;
+            }
+            
+            await worker.update({ awaitAvailability: true });
+            worker.lastMessage = new Date();
+        }
+        const worker = await Worker.findOne({ where: { phone: phone } });
+        console.log(worker);
 
         if (!phone || !country || !message) {
             res.status(400).send({
@@ -52,6 +68,7 @@ const sendMessageController = async (req: Request, res: Response) => {
         }
 
         await whatsappService.sendMessage(parsePhoneNumber(phone, country), message);
+        
         res.status(200).send({
             message: 'Message sent successfully',
         });
@@ -61,7 +78,6 @@ const sendMessageController = async (req: Request, res: Response) => {
         });
     }
 };
-
 
 const statusServiceController = async (req: Request, res: Response) => {
     try {
@@ -122,7 +138,7 @@ const securityPasswordController = async (req: Request, res: Response) => {
     }
 
 
-
+/*
     if(!chatBot.confirmDeleteAccount(id)){
         renderError(res, 'Error al eliminar cuenta', 'El número de teléfono no se encuentra registrado o no ha solicitado la eliminacion', hostFrontend);
         return;
@@ -131,7 +147,7 @@ const securityPasswordController = async (req: Request, res: Response) => {
     if(isRequestExpired(chatBot.expireDeleteAccount(id))){
         renderError(res, 'Error al eliminar cuenta', 'El tiempo para eliminar la cuenta ha expirado, por favor vuelva a escribir', 'https:wa.me/573002222222');
         return;
-    }
+    }*/
 
 
     renderSecurityPassword(res, {
@@ -214,6 +230,19 @@ const registerController = async (req: Request, res: Response) => {
     }
 };
 
+const updateWorkerAvailability = async (phone: string, isAvailable: boolean) => {
+    try {
+      await fetch(`${hostBackend}/api/workers/availability`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, isAvailable }),
+      });
+    } catch (error) {
+      console.error('Error updating worker availability:', error);
+    }
+  };
 
 
-export { sendMessageController, statusServiceController, securityPasswordController, registerController };
+export { sendMessageController, statusServiceController, securityPasswordController, registerController, updateWorkerAvailability };
