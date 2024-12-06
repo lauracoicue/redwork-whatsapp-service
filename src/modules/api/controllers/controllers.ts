@@ -131,28 +131,35 @@ const deleteAccountController = async (req: Request, res: Response) => {
 
 const securityPasswordController = async (req: Request, res: Response) => {
     const id = req.query.id as string | undefined;
+    const option = req.query.option as string | undefined;
+
+
 
     if (!id) {
         renderError(res, 'Error al establecer contraseña', 'El número de teléfono es requerido', hostFrontend);
         return;
     }
 
+    if (option === 'delete' ){
 
-/*
-    if(!chatBot.confirmDeleteAccount(id)){
-        renderError(res, 'Error al eliminar cuenta', 'El número de teléfono no se encuentra registrado o no ha solicitado la eliminacion', hostFrontend);
+        if(!chatBot.confirmDeleteAccount(id)){
+            renderError(res, 'Error al eliminar cuenta', 'El número de teléfono no se encuentra registrado o no ha solicitado la eliminacion', hostFrontend);
+            return;
+        }
+
+        if(isRequestExpired(chatBot.expireDeleteAccount(id))){
+            renderError(res, 'Error al eliminar cuenta', 'El tiempo para eliminar la cuenta ha expirado, por favor vuelva a escribir', 'https:wa.me/573002222222');
+            return;
+        }
+    
+    
+        renderSecurityPassword(res, {
+            title: 'Eliminar cuenta', message: '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.', link: undefined, action: '/api/delete-account', id});
+        
         return;
     }
 
-    if(isRequestExpired(chatBot.expireDeleteAccount(id))){
-        renderError(res, 'Error al eliminar cuenta', 'El tiempo para eliminar la cuenta ha expirado, por favor vuelva a escribir', 'https:wa.me/573002222222');
-        return;
-    }*/
 
-
-    renderSecurityPassword(res, {
-        title: 'Eliminar cuenta', message: '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.', link: undefined, action: '/api/delete-account', id});
-    
     return;
 };
 
@@ -245,4 +252,4 @@ const updateWorkerAvailability = async (phone: string, isAvailable: boolean) => 
   };
 
 
-export { sendMessageController, statusServiceController, securityPasswordController, registerController, updateWorkerAvailability };
+export { sendMessageController, statusServiceController, securityPasswordController, registerController, updateWorkerAvailability, deleteAccountController };
