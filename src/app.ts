@@ -57,6 +57,9 @@ const main = async () => {
                         await Worker.update({awaitAvailability: false}, {where: {phone: worker.phone}});
                         updateWorkerAvailability(worker.phone, true);
                         await adminWhatsappService.sendMessage(parsePhoneNumber(worker.phone, worker.country), 'Tu disponibilidad ha sido actualizada');
+                        setTimeout(() => {
+                            updateWorkerAvailability(worker.phone, false);
+                        }, 150000);
                         return;
                     } else if (message.body === '2'){
                         await Worker.update({awaitAvailability: false}, {where: {phone: worker.phone}});
