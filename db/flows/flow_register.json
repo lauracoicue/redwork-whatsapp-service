@@ -42,7 +42,7 @@
         },
         {
             "step": 6,
-           "message": "¡Ahora envianos una *foto de perfil* donde te veas bien! 😊 Esta será la imagen que los clientes verán, así que elige una que te represente.",
+           "message": "¡Ahora envíanos una *foto de perfil* donde te veas bien! 😊 Esta será la imagen que los clientes verán, así que elige una que te represente.",
             "type": "file_upload",
             "params": "photo",
             "validator": {
@@ -56,6 +56,21 @@
         },
         {
             "step": 7,
+            "message": "Envíanos *fotos* de los trabajos que has realizado, para que los clientes puedan tener referencias. Cuando finalices envía la palabra *Listo*.",
+            "type": "file_upload",
+            "params": "work_images",
+            "validator": {
+                "type": "file_or_input",
+                "allowed_types": [
+                    "image/jpeg",
+                    "image/png",
+                    "image/jpg"
+                ]
+            }
+
+        },
+        {
+            "step": 8,
             "message": "Por favor, comparte tu *ubicación* actual para que los clientes puedan encontrarte más fácilmente. (La ubicación debe ser aproximada a zona de trabajo)",
             "type": "location",
             "params": "location",
@@ -64,7 +79,7 @@
             }
         },
         {
-            "step": 8,
+            "step": 9,
             "message": "Por último, ¿cuál es tu *correo electrónico*?",
             "type": "input",
             "params": "email",
@@ -73,14 +88,14 @@
             }
         },
         {
-            "step": 9,
+            "step": 10,
             "message": "¡Perfecto! Ahora, ingresa al siguiente enlace para establecer tu contraseña y completar tu registro, el enlace expirará en 5 minutos",
             "type": "link",
             "params": "password"
             
         },
         {
-            "step": 10,
+            "step": 11,
             "message": "¡Felicitaciones! 🎉 Tu registro ha sido exitoso y ahora eres parte de la familia RedWork.\nAhora envianos un mensaje, para activar el menú.",
             "type": "info"
         }
