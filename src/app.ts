@@ -54,12 +54,12 @@ const main = async () => {
             if(worker){
                 if (worker.awaitAvailability && messageTimeLast(worker.lastMessage, 2.5)){
                     if (message.body === '1'){
-                        await Worker.update({awaitAvailability: false}, {where: {phone: worker.phone}});
+                        await worker.update({awaitAvailability: false});
                         updateWorkerAvailability(worker.phone, true);
                         await adminWhatsappService.sendMessage(parsePhoneNumber(worker.phone, worker.country), 'Tu disponibilidad ha sido actualizada');
                         return;
                     } else if (message.body === '2'){
-                        await Worker.update({awaitAvailability: false}, {where: {phone: worker.phone}});
+                        await worker.update({awaitAvailability: false});
                         updateWorkerAvailability(worker.phone, false);
                         await adminWhatsappService.sendMessage(parsePhoneNumber(worker.phone, worker.country), 'Tu disponibilidad ha sido actualizada');
                         return;
