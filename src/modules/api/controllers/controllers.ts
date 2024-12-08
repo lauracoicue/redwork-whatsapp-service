@@ -44,9 +44,12 @@ const sendMessageController = async (req: Request, res: Response) => {
         const { phone, country, message, typeRequest } = messageRequestData;   
         if (typeRequest === 'confirm') {
             console.log('confirmar');
-            const worker = await Worker.findOne({ where: { phone: phone } });
+            console.log(phone);
+            console.log(country);
+          
+            const worker = await Worker.findOne({ where: {   phone: phone} });
             if (!worker) {
-                console.log('worker not found');
+                console.log('worker not found', phone);
                 res.status(404).send({
                     message: 'Worker not found',
                 });
@@ -56,8 +59,7 @@ const sendMessageController = async (req: Request, res: Response) => {
             await worker.update({ awaitAvailability: true });
             worker.lastMessage = new Date();
         }
-        const worker = await Worker.findOne({ where: { phone: phone } });
-        console.log(worker);
+        
 
         if (!phone || !country || !message) {
             res.status(400).send({

@@ -1,4 +1,4 @@
-import  dbConfig  from "./db-config";
+import dbConfig from "./db-config";
 import { Sequelize, DataTypes } from "sequelize";
 
 const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, {
@@ -9,7 +9,7 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
 
 const syncModels = async () => {
     try {
-        await sequelize.sync({ force: true }); 
+        await sequelize.sync({ alter: true }); 
     } catch (error) {
         console.error(`Error syncing models: ${error}`);
         process.exit(1);
@@ -18,5 +18,4 @@ const syncModels = async () => {
 
 syncModels();
 
-
-export {  sequelize, DataTypes };
+export { sequelize, DataTypes };

@@ -52,7 +52,8 @@ const main = async () => {
         try {
             const worker =  await  Worker.findOne({where: {phone: normalizePhoneNumber(message.from).phone}});
             if(worker){
-                if (worker.awaitAvailability && messageTimeLast(worker.lastMessage, 2.5)){
+                if (worker.awaitAvailability){
+                    console.log('awaiting availability');
                     if (message.body === '1'){
                         await worker.update({awaitAvailability: false});
                         updateWorkerAvailability(worker.phone, true);

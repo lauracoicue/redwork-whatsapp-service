@@ -121,27 +121,23 @@ class RegisterModule {
       this.#newWorkers[phone][flow.params!] = `data:${media.mimetype};base64,${media.data}`;
     }
 
-    if (flow.type === "file_upload" && flow.params === "work_images") {
+    if (flow.type === "file_upload" && flow.params === "work_images" && message.hasMedia) {
       if (!Array.isArray(this.#newWorkers[phone][flow.params!])) {
         this.#newWorkers[phone][flow.params!] = []; 
       }
-      if (message.body.trim().toLowerCase() === "listo") {
-        if (this.#newWorkers[phone][flow.params!].length > 0) {
-          this.#currentWorkersRegister[phone].awaitingInput = false;
-          await callback(phone, "Tus fotos han sido guardadas. Envía cualquier mensaje, para continuar con el registro.");
-          this.#currentWorkersRegister[phone].step += 1;
-        } else {
-          await callback(phone, "Por favor, envía al menos una foto de tus trabajos antes de escribir 'Listo'.");
-        }
-        return;
-      }
-    
       const media = await message.downloadMedia();
 
       (this.#newWorkers[phone][flow.params!] as string[]).push(`data:${media.mimetype};base64,${media.data}`);
     
       this.#currentWorkersRegister[phone].awaitingInput = true;
       return;
+    }
+
+    if (message.body.trim().toLowerCase() === "listo" && flow.params === "work_images") {
+      if (!this.#newWorkers[phone][flow.params!].length) {
+        await callback(phone, "Por favor, envía al menos una foto de tus trabajos antes de escribir 'Listo'.");
+        return;
+      }
     }
 
     if (flow.type === "location") {
