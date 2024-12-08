@@ -113,12 +113,35 @@ class RegisterModule {
     }
     
 
-    if (flow.type === "file_upload") {
+    if (flow.type === "file_upload" && flow.params === "photo") {
       if (!this.#newWorkers[phone][flow.params!]) {
         this.#newWorkers[phone][flow.params!] = "";
       }
       const media = await message.downloadMedia();
       this.#newWorkers[phone][flow.params!] = `data:${media.mimetype};base64,${media.data}`;
+    }
+
+    if (flow.type === "file_upload" && flow.params === "work_images") {
+      if (!Array.isArray(this.#newWorkers[phone][flow.params!])) {
+        this.#newWorkers[phone][flow.params!] = []; 
+      }
+      if (message.body.trim().toLowerCase() === "listo") {
+        if (this.#newWorkers[phone][flow.params!].length > 0) {
+          this.#currentWorkersRegister[phone].awaitingInput = false;
+          await callback(phone, "Tus fotos han sido guardadas. Envía cualquier mensaje, para continuar con el registro.");
+          this.#currentWorkersRegister[phone].step += 1;
+        } else {
+          await callback(phone, "Por favor, envía al menos una foto de tus trabajos antes de escribir 'Listo'.");
+        }
+        return;
+      }
+    
+      const media = await message.downloadMedia();
+
+      (this.#newWorkers[phone][flow.params!] as string[]).push(`data:${media.mimetype};base64,${media.data}`);
+    
+      this.#currentWorkersRegister[phone].awaitingInput = true;
+      return;
     }
 
     if (flow.type === "location") {
@@ -165,7 +188,10 @@ class RegisterModule {
           createdAt: new Date(),
           awaitAvailability: false,
         });
-        console.log(this.#newWorkers[phone]["photo"].substring(0, 50));
+        const photo = this.#newWorkers[phone]["photo"];
+        if (typeof photo === 'string') {
+          console.log(photo.substring(0, 50));
+        }
 
         await fetchData({
           method: "POST",
@@ -182,8 +208,8 @@ class RegisterModule {
             photo: this.#newWorkers[phone]["photo"]! ,
             job: this.#newWorkers[phone]["job"]!,
             category: this.#newWorkers[phone]["category"]!,
-            workImages: [],
-            location: locationParser(this.#newWorkers[phone]["location"]!),
+            workImages: this.#newWorkers[phone]["work_images"]!,
+            location: locationParser(Array.isArray(this.#newWorkers[phone]["location"]) ? this.#newWorkers[phone]["location"].join(",") : this.#newWorkers[phone]["location"]!),
         }});
 
         delete this.#newWorkers[phone];

@@ -37,6 +37,17 @@ const  validateMessageInput = async (userMessage: Message, validator: Validator 
           return `El archivo debe ser de alguno de los siguientes tipos: ${validator.allowed_types}`;
         }
         return;
+      case 'file_or_input':
+        if (!userMessage.hasMedia && userMessage.body.toLowerCase() !== 'listo'){
+          return 'Debes enviar una foto o escribir "listo"';
+        }
+        if (userMessage.hasMedia) {
+        const fileMedia = await userMessage.downloadMedia();
+        if (!validator.allowed_types!.includes(fileMedia.mimetype)){
+          return `El archivo debe ser de alguno de los siguientes tipos: ${validator.allowed_types}`;
+          }
+        }
+        return;
       case 'password':
         const password = userMessage.body;
         if (!password){

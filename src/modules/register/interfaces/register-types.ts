@@ -7,7 +7,7 @@ interface CurrentWorkersRegister {
   }
   
 interface WorkerRegister {
-    [key: string]: string 
+    [key: string]: string | string[];
 }
   
 interface NewWorker {
