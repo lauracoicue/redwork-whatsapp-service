@@ -6,7 +6,6 @@ import registerModule from '../../register/register';
 import Worker from '../../../models/worker';
 import { hostBackend, hostFrontend } from '../../../config/config';
 import chatBot from '../../menu/menu';
-import { render } from 'ejs';
 
 const renderSecurityPassword = (res: Response, params:{title: string, message: string, link: string | undefined, action: string | undefined, id: string | undefined}) => {
     console.log(params);
@@ -121,6 +120,8 @@ const deleteAccountController = async (req: Request, res: Response) => {
             title: 'Cuenta eliminada', message: 'Tu cuenta ha sido eliminada con éxito', link: hostFrontend, id: undefined, action: undefined
         });
 
+        await adminWhatsappService.sendMessage(id, 'Su cuenta ha sido eliminada')
+        chatBot.reset(id);
         return;
     }catch (error) {
         res.status(500).send({ message: `Error deleting account: ${error}` });

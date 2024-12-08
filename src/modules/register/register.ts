@@ -74,8 +74,8 @@ class RegisterModule {
       }
     }
 
-    console.log(this.#pendingRegister[phone]);
-    await callback(phone, `${hostService}/api/register?id=${phone}`);
+    const id = encodeURIComponent(phone);
+    await callback(phone, `${hostService}/api/register?id=${id}`);
   }
 
   async #processFlowStep(phone: string, callback: Callback, message: Message) {

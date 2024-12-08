@@ -47,7 +47,11 @@ class ChatBot {
         if (isNaN(optionIndex)) {
             return 'Opción inválida. Por favor, selecciona una opción válida.';
         }
-        return this.selectOption(phone, optionIndex);
+        const option =  this.selectOption(phone, optionIndex);
+        if (option) {
+            return option;
+        }
+        return this.#redirectToModule(phone, message);
     } else {
       return this.#redirectToModule(phone, message);
     }
@@ -62,7 +66,7 @@ class ChatBot {
     return menu;
   }
 
-  selectOption(phone: string, optionIndex: number): string {
+  selectOption(phone: string, optionIndex: number): string | undefined {
     const userState = this.#userStates[phone];
     if (!userState) {
       return 'Error: Usuario no encontrado. Por favor, inicia desde el menú principal.';
@@ -74,7 +78,7 @@ class ChatBot {
 
     const moduleMapping: Module[] = ['profile', 'reports', 'password', 'deleteAccount'];
     userState.currentFlow = moduleMapping[optionIndex - 1];
-    return `Redirigiendo al módulo: ${this.#mainMenuOptions[optionIndex - 1]}`;
+    return undefined;
   }
 
   #redirectToModule(phone: string, message: Message): string {
@@ -88,9 +92,7 @@ class ChatBot {
       case 'password':
         return `Manejando el módulo de cambio de contraseña para el usuario ${phone}. Recibido: ${message}`;
       case 'deleteAccount':
-
-
-        return `Manejando el módulo de eliminación de cuenta para el usuario ${phone}. Recibido: ${message}`;
+        return this.deleteAccount(phone, message.body)
       default:
         userState.currentFlow = null;
         return 'Algo salió mal. Volviendo al menú principal.';
@@ -106,7 +108,7 @@ class ChatBot {
     return 'Volviendo al menú principal.';
   }
 
-  async deleteAccount(phone: string, message:string): Promise<string> {
+  deleteAccount(phone: string, message:string): string {
     if(!this.#currentFlowMessage[phone]){
       this.#currentFlowMessage[phone] = {
         currentFlow: 0,
@@ -116,8 +118,7 @@ class ChatBot {
     }
    const flowDeleteAccount = [
       {
-        message: '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.',
-        options: ['1. Sí', '2. No'],
+        message: '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.\nSelecciona una opción:\n 1. Sí\n 2. No',
       },
       {
       message: 'Para confirmar la eliminación de tu cuenta, ingresa al siguiente enlace:',
@@ -140,7 +141,7 @@ class ChatBot {
       if (message === '1') {
         currentFlow.currentFlow = 1;
         const phoneUrlencoded = encodeURIComponent(phone);
-        return flowDeleteAccount[1].message + `\n${hostService}/security-password?id=${phoneUrlencoded}`;
+        return flowDeleteAccount[1].message + `\n${hostService}/api/security-password?id=${phoneUrlencoded}&option=delete`;
       }  
       if (message === '2') {
         delete this.#currentFlowMessage[phone];
@@ -151,13 +152,7 @@ class ChatBot {
   }
 
   if (currentFlow.currentFlow === 1 && currentFlow.awaitConfirm) {
-    if (message === 'confirmar') {
-      currentFlow.currentFlow = 2;
-      delete this.#currentFlowMessage[phone];
-      delete this.#userStates[phone];
-      return flowDeleteAccount[2].message;
-    }
-    return 'Por favor, ingresa "confirmar" para confirmar la eliminación de tu cuenta.';
+    return 'Ingresa al enlace para confimar la accion';
   }
 
   return 'Error: Algo salió mal. Por favor, intenta de nuevo.';
