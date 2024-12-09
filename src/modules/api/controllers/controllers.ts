@@ -4,7 +4,7 @@ import { normalizePhoneNumber, parsePhoneNumber } from '../../../utils/number-pa
 import { MessageRequest } from '../../../services/interfaces/whatsapp-servive-types';
 import registerModule from '../../register/register';
 import Worker from '../../../models/worker';
-import { hostBackend, hostFrontend } from '../../../config/config';
+import { hostBackend, hostFrontend, hostService } from '../../../config/config';
 import chatBot from '../../menu/menu';
 
 const renderSecurityPassword = (res: Response, params:{title: string, message: string, link: string | undefined, action: string | undefined, id: string | undefined}) => {
@@ -162,10 +162,33 @@ const securityPasswordController = async (req: Request, res: Response) => {
         return;
     }
 
+    if (option === 'password') {
+        renderSecurityPassword(res, {
+            title: 'Establecer contraseña', message: 'Por favor establezca su nueva contraseña', link: undefined, action: '/api/url-password', id}); 
+    }
+
 
     return;
 };
 
+const urlPasswordController = async (req: Request, res: Response) => {
+    const phone = req.query.id as string;
+    const phoneUrlencoded = encodeURIComponent(phone);
+    try {
+        const url = `${hostService}/api/security-password?id=${phoneUrlencoded}&option=password`;
+        const response = await fetch(`${hostBackend}/api/workers/email/${phone}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ phone, url }), 
+        });
+        const data = await response.json();
+        res.status(200).send({ message: 'Email sent successfully'});
+    } catch (error) {
+        res.status(500).send({ message: `Error sending email: ${error}` });
+    }
+}
 
 
 
@@ -255,4 +278,4 @@ const updateWorkerAvailability = async (phone: string, isAvailable: boolean) => 
   };
 
 
-export { sendMessageController, statusServiceController, securityPasswordController, registerController, updateWorkerAvailability, deleteAccountController };
+export { sendMessageController, statusServiceController, securityPasswordController, registerController, updateWorkerAvailability, deleteAccountController, urlPasswordController };
