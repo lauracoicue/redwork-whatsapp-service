@@ -93,6 +93,42 @@ const statusServiceController = async (req: Request, res: Response) => {
     }
 };
 
+const updateAccountController = async (req: Request, res: Response) => {
+    const id = req.body.id as string | undefined;
+    const password = req.body.password as string | undefined;
+    const updates = req.body.updates as Record<string, any> | undefined;
+
+    if (!id || !password || !updates) {
+        renderError(res, 'Error al actualizar cuenta', 'El número de teléfono, la contraseña y las actualizaciones son requeridos', hostFrontend);
+        return;
+    }
+
+    const worker = await Worker.findOne({ where: { phone: normalizePhoneNumber(id).phone } });
+
+    if (!worker) {
+        renderError(res, 'Error al actualizar cuenta', 'El número de teléfono no se encuentra registrado', hostFrontend);
+        return;
+    }
+
+    try {
+        await fetch(`${hostBackend}/api/workers/${worker.phone}/update`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id, updates }),
+        });
+
+        renderSecurityPassword(res, {
+            title: 'Cuenta actualizada', message: 'Tu cuenta ha sido actualizada con éxito', link: hostFrontend, id: undefined, action: undefined
+        });
+
+        await adminWhatsappService.sendMessage(id, `Su cuenta ha sido actualizada con éxito.`);
+    } catch (error) {
+        res.status(500).send({ message: `Error updating account: ${error}` });
+    }
+}
+
 const deleteAccountController = async (req: Request, res: Response) => {
     const id = req.body.id as string | undefined;
     const password = req.body.password as string | undefined;
@@ -167,6 +203,10 @@ const securityPasswordController = async (req: Request, res: Response) => {
             title: 'Establecer contraseña', message: 'Por favor establezca su nueva contraseña', link: undefined, action: '/api/reset-password', id}); 
     }
 
+    if (option === 'update') {
+        renderSecurityPassword(res, {
+            title: 'Actualizar cuenta', message: 'Por favor ingrese su contraseña', link: undefined, action: '/api/update-account', id});
+    }
 
     return;
 };
@@ -184,7 +224,7 @@ const urlPasswordController = async (req: Request, res: Response) => {
         });
       
         renderSecurityPassword(res,{
-            title:'Contraseña restablecida', message: 'Tu contrasñea fue restablecida con exito, puedes seguir disfrutando de la plataforma', link: hostFrontend,
+            title:'Contraseña restablecida', message: 'Tu contraseña fue restablecida con exito, puedes seguir disfrutando de la plataforma', link: hostFrontend,
             id: undefined, action: undefined
        });
 
@@ -284,4 +324,4 @@ const updateWorkerAvailability = async (phone: string, isAvailable: boolean) => 
   };
 
 
-export { sendMessageController, statusServiceController, securityPasswordController, registerController, updateWorkerAvailability, deleteAccountController, urlPasswordController };
+export { sendMessageController, statusServiceController, securityPasswordController, registerController, updateWorkerAvailability, deleteAccountController, urlPasswordController, updateAccountController };

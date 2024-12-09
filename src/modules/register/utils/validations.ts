@@ -2,7 +2,7 @@ import { Convert, Validator } from '../../../models/flows';
 import { Message } from "whatsapp-web.js";
 import { validateCategory } from './categoryValidator';
 
-const  validateMessageInput = async (userMessage: Message, validator: Validator | undefined): Promise<string | undefined> => {
+export const  validateMessageInput = async (userMessage: Message, validator: Validator | undefined): Promise<string | undefined> => {
    
     if (!validator){
       return;

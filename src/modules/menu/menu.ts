@@ -1,5 +1,6 @@
 import { Message } from "whatsapp-web.js";
 import { hostBackend, hostService } from "../../config/config";
+import { validateMessageInput } from "../register/utils/validations";
 
 type Module = 'profile' | 'reports' | 'password' | 'deleteAccount' | null;
 
@@ -86,7 +87,7 @@ class ChatBot {
 
     switch (userState.currentFlow) {
       case 'profile': 
-        return `Manejando el módulo de perfil para el usuario ${phone}. Recibido: ${message}`;
+        return await this.updateAccount(phone, message.body);
       case 'reports':
         return `Manejando el módulo de reportes para el usuario ${phone}. Recibido: ${message}`;
       case 'password':
@@ -133,6 +134,130 @@ class ChatBot {
 
     this.#userStates[phone].currentFlow = null;
     return 'Volviendo al menú principal.';
+  }
+
+  async updateAccount(phone: string, message:string): Promise<string>{
+    if(!this.#currentFlowMessage[phone]){
+      this.#currentFlowMessage[phone] = {
+        currentFlow: 0,
+        awaitConfirm: false,
+        lastMessage: new Date(),
+    }
+  }
+  const flowUpdateAccount = [
+    {
+      message: '¿Qué información deseas actualizar?\nSelecciona una opción:\n 1. Categoría\n 2. Trabajos\n 3. Foto de perfil\n 4. Correo electronico\n 5. Ubicación\n 6. Agregar fotos de trabajos',
+    },
+    {
+      message: '¿Qué *categoría* describe mejor tu trabajo?\n1 - Construcción\n2 - Mantenimiento de vehículos\n3 - Arte y diseño\n4 - Salud y bienestar\n5 - Educación\n6 - Servicios de transporte\n7 - Servicios del hogar\n8 - Servicios tecnológicos\n9 - Servicios administrativos\n10 - Servicios legales\n11 - Servicios estéticos',
+    },
+    {
+      message: '¿Cuál es el *trabajo o trabajos* que realizas?',
+    },
+    {
+      message: 'Envíanos una *foto de perfil* donde te veas bien! 😊 Esta será la imagen que los clientes verán, así que elige una que te represente.',
+    },
+    {
+      message: '¿cuál es tu *correo electrónico*?',
+    },
+    {
+      message: 'Envíanos *fotos* de los trabajos que has realizado, para que los clientes puedan tener referencias. Cuando finalices envía la palabra *Listo*.',
+    },
+    {
+      message: 'Por favor, comparte tu *ubicación* actual',
+    },
+    {
+      message: 'Para confirmar la actualización de tu cuenta, ingresa al siguiente enlace:',
+    },
+    {
+      message: 'Tu información ha sido actualizada con éxito.',
+    }
+    ];
+    const currentFlow = this.#currentFlowMessage[phone];
+    const phoneUrlencoded = encodeURIComponent(phone);
+    const updates: { category?: string, job?: string, email?:string, photo?: string, location?: string, workImages?: [] } = {};
+    const url = `${hostService}/api/security-password?id=${phoneUrlencoded}&option=update`;
+    if (!currentFlow.awaitConfirm) {
+      currentFlow.awaitConfirm = true;
+      return flowUpdateAccount[0].message;
+    }
+    if (currentFlow.currentFlow === 0) {
+      if (message === '1') {
+        currentFlow.currentFlow = 1;
+        return flowUpdateAccount[1].message;
+      }
+      if (message === '2') {
+        currentFlow.currentFlow = 2;
+        return flowUpdateAccount[2].message;
+      }
+      if (message === '3') {
+        currentFlow.currentFlow = 3;
+        return flowUpdateAccount[3].message;
+      }
+      if (message === '4') {
+        currentFlow.currentFlow = 4;
+        return flowUpdateAccount[4].message;
+      }
+      if (message === '5') {
+        currentFlow.currentFlow = 5;
+        return flowUpdateAccount[5].message;
+      }
+      if (message === '6') {
+        currentFlow.currentFlow = 6;
+        return flowUpdateAccount[6].message;
+      }
+      return 'Por favor, selecciona una opción válida.';
+    }
+    if (currentFlow.currentFlow === 1 && currentFlow.awaitConfirm) {
+      const validator = {type: 'category'};
+      const validation = await validateMessageInput({body: message} as Message, validator);
+      if (validation) {
+        return validation;
+      }
+      updates.category = message;
+      return flowUpdateAccount[7].message + `\n${url}`;
+    }
+    if (currentFlow.currentFlow === 2 && currentFlow.awaitConfirm) {
+      const validator = {type: 'text'};
+      const validation = await validateMessageInput({body: message} as Message, validator);
+      if (validation) {
+        return validation;
+      }
+      return flowUpdateAccount[7].message + `\n${url}`;
+    }
+    if (currentFlow.currentFlow === 3 && currentFlow.awaitConfirm) {
+      const validator = {type: 'file'};
+      const validation = await validateMessageInput({body: message} as Message, validator);
+      if (validation) {
+        return validation;
+      }
+      return flowUpdateAccount[7].message + `\n${url}`;
+    }
+    if (currentFlow.currentFlow === 4 && currentFlow.awaitConfirm) {
+      const validator = {type: 'email'};
+      const validation = await validateMessageInput({body:message} as Message, validator);
+      if (validation) {
+        return validation;
+      }
+      return flowUpdateAccount[7].message + `\n${url}`;
+    }
+    if (currentFlow.currentFlow === 5 && currentFlow.awaitConfirm) {
+      const validator = {type: 'location'};
+      const validation = await validateMessageInput({body: message} as Message, validator);
+      if (validation) {
+        return validation;
+      }
+      return flowUpdateAccount[7].message + `\n${url}`;
+    }
+    if (currentFlow.currentFlow === 6 && currentFlow.awaitConfirm) {
+      const validator = {type: 'file_or_input'};
+      const validation = await validateMessageInput({body: message} as Message, validator);
+      if (validation) {
+        return validation;
+      }
+      return flowUpdateAccount[7].message + `\n${url}`;
+    }
+    return 'Error: Algo salió mal. Por favor, intenta de nuevo.';
   }
 
   deleteAccount(phone: string, message:string): string {
