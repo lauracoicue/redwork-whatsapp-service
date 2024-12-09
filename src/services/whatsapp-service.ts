@@ -1,4 +1,4 @@
-import WAWebJS, { Client, LocalAuth, Location, MessageMedia} from "whatsapp-web.js";
+import WAWebJS, { Client, LocalAuth, Location, Message, MessageContent, MessageMedia} from "whatsapp-web.js";
 import WhatsappServiceError from "./errors/whatsapp-serviver-error";
 import {MediaMessage, LocationMessage } from "./interfaces/whatsapp-servive-types";
 
@@ -56,6 +56,26 @@ class WhatsappService {
              }
             throw new WhatsappServiceError(`Error initializing whatsapp service: ${error}`);
        }
+    } 
+
+    async retransmitMessage(phone: string, message: MessageContent, sender:string): Promise<void> {
+        try {
+            if (!phone) {
+                throw new WhatsappServiceError('Phone is required');
+            }
+
+            if (!message) {
+                throw new WhatsappServiceError('Message is required');
+            }
+            const currentMessage = await this.#client.sendMessage(phone, message);
+            await currentMessage.reply('Enviado por: ' + sender);
+
+        } catch (error) {
+            if (error instanceof WhatsappServiceError) {
+                throw error;
+            }
+            throw new WhatsappServiceError(`Error resending message: ${error}`);
+        }
     } 
 
     async sendMessage(phone: string, message: MediaMessage | string | LocationMessage): Promise<void> {
