@@ -175,7 +175,7 @@ class ChatBot {
     ];
     const currentFlow = this.#currentFlowMessage[phone];
     const phoneUrlencoded = encodeURIComponent(phone);
-    const updates: { category?: string, job?: string, email?:string, photo?: string, location?: string, workImages?: [] } = {};
+    const updates: { category?: string, job?: string, email?:string, photo?: string, location?: string, workImages?: string[] } = {};
     const url = `${hostService}/api/security-password?id=${phoneUrlencoded}&option=update`;
     if (!currentFlow.awaitConfirm) {
       currentFlow.awaitConfirm = true;
@@ -208,57 +208,64 @@ class ChatBot {
       }
       return 'Por favor, selecciona una opción válida.';
     }
-    if (currentFlow.currentFlow === 1 && currentFlow.awaitConfirm) {
-      const validator = {type: 'category'};
-      const validation = await validateMessageInput({body: message} as Message, validator);
-      if (validation) {
-        return validation;
+    if (currentFlow.awaitConfirm) {
+      let validationResult;
+      if (currentFlow.currentFlow === 1) {
+          const validator = { type: 'category' };
+          validationResult = await validateMessageInput({ body: message } as Message, validator);
+          if (validationResult) return validationResult;
+          updates.category = message;
       }
-      updates.category = message;
-      return flowUpdateAccount[7].message + `\n${url}`;
-    }
-    if (currentFlow.currentFlow === 2 && currentFlow.awaitConfirm) {
-      const validator = {type: 'text'};
-      const validation = await validateMessageInput({body: message} as Message, validator);
-      if (validation) {
-        return validation;
+      if (currentFlow.currentFlow === 2) {
+          const validator = { type: 'text' };
+          validationResult = await validateMessageInput({ body: message } as Message, validator);
+          if (validationResult) return validationResult;
+          updates.job = message;
       }
-      return flowUpdateAccount[7].message + `\n${url}`;
-    }
-    if (currentFlow.currentFlow === 3 && currentFlow.awaitConfirm) {
-      const validator = {type: 'file'};
-      const validation = await validateMessageInput({body: message} as Message, validator);
-      if (validation) {
-        return validation;
+      if (currentFlow.currentFlow === 3) {
+          const validator = { type: 'file' };
+          validationResult = await validateMessageInput({ body: message } as Message, validator);
+          if (validationResult) return validationResult;
+          updates.photo = message;
       }
-      return flowUpdateAccount[7].message + `\n${url}`;
-    }
-    if (currentFlow.currentFlow === 4 && currentFlow.awaitConfirm) {
-      const validator = {type: 'email'};
-      const validation = await validateMessageInput({body:message} as Message, validator);
-      if (validation) {
-        return validation;
+      if (currentFlow.currentFlow === 4) {
+          const validator = { type: 'email' };
+          validationResult = await validateMessageInput({ body: message } as Message, validator);
+          if (validationResult) return validationResult;
+          updates.email = message;
       }
-      return flowUpdateAccount[7].message + `\n${url}`;
-    }
-    if (currentFlow.currentFlow === 5 && currentFlow.awaitConfirm) {
-      const validator = {type: 'location'};
-      const validation = await validateMessageInput({body: message} as Message, validator);
-      if (validation) {
-        return validation;
+      if (currentFlow.currentFlow === 5) {
+          const validator = { type: 'location' };
+          validationResult = await validateMessageInput({ body: message } as Message, validator);
+          if (validationResult) return validationResult;
+          updates.location = message;
       }
-      return flowUpdateAccount[7].message + `\n${url}`;
-    }
-    if (currentFlow.currentFlow === 6 && currentFlow.awaitConfirm) {
-      const validator = {type: 'file_or_input'};
-      const validation = await validateMessageInput({body: message} as Message, validator);
-      if (validation) {
-        return validation;
+      if (currentFlow.currentFlow === 6) {
+          const validator = { type: 'file_or_input' };
+          validationResult = await validateMessageInput({ body: message } as Message, validator);
+          if (validationResult) return validationResult;
+          updates.workImages = message.split(','); 
       }
-      return flowUpdateAccount[7].message + `\n${url}`;
-    }
-    return 'Error: Algo salió mal. Por favor, intenta de nuevo.';
+      try {
+          await fetch(`${hostService}/api/security-password?id=${phoneUrlencoded}&option=update`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  id: phone,
+                  updates,
+              }),
+          });
+          flowUpdateAccount[7].message + `\n${url}`;
+          
+      } catch (error) {
+          return `Error: No se pudo actualizar la cuenta. ${error}`;
+      }
   }
+
+  return 'Error: Algo salió mal. Por favor, intenta de nuevo.';
+}
 
   deleteAccount(phone: string, message:string): string {
     if(!this.#currentFlowMessage[phone]){

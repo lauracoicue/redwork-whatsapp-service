@@ -96,9 +96,9 @@ const statusServiceController = async (req: Request, res: Response) => {
 const updateAccountController = async (req: Request, res: Response) => {
     const id = req.body.id as string | undefined;
     const password = req.body.password as string | undefined;
-    const updates = req.body.updates as Record<string, any> | undefined;
+    const updates = req.body.updates as string[] | undefined;
 
-    if (!id || !password || !updates) {
+    if (!id || !password) {
         renderError(res, 'Error al actualizar cuenta', 'El número de teléfono, la contraseña y las actualizaciones son requeridos', hostFrontend);
         return;
     }
