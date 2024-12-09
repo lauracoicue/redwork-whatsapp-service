@@ -201,7 +201,7 @@ const main = async () => {
                         return;
                     }
                 }
-                const messageResponse = chatBot.handleMessage(message.from, message);
+                const messageResponse = await chatBot.handleMessage(message.from, worker.id, message);
                 await adminWhatsappService.sendMessage(message.from, messageResponse);
                 return;
             } 

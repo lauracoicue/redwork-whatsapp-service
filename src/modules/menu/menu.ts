@@ -1,5 +1,5 @@
 import { Message } from "whatsapp-web.js";
-import { hostService } from "../../config/config";
+import { hostBackend, hostService } from "../../config/config";
 
 type Module = 'profile' | 'reports' | 'password' | 'deleteAccount' | null;
 
@@ -31,7 +31,7 @@ class ChatBot {
   }
 
  
-  handleMessage(phone: string, message: Message): string {
+  async handleMessage(phone: string, id:string, message: Message): Promise<string>{
    
     if (!(phone in this.#userStates)) {
       this.#userStates[phone] = { currentFlow: null };
@@ -51,9 +51,9 @@ class ChatBot {
         if (option) {
             return option;
         }
-        return this.#redirectToModule(phone, message);
+        return await this.#redirectToModule(phone,id, message);
     } else {
-      return this.#redirectToModule(phone, message);
+      return await this.#redirectToModule(phone,id, message);
     }
   }
 
@@ -81,7 +81,7 @@ class ChatBot {
     return undefined;
   }
 
-  #redirectToModule(phone: string, message: Message): string {
+ async #redirectToModule(phone: string, id:string, message: Message): Promise<string> {
     const userState = this.#userStates[phone];
 
     switch (userState.currentFlow) {
@@ -90,13 +90,40 @@ class ChatBot {
       case 'reports':
         return `Manejando el módulo de reportes para el usuario ${phone}. Recibido: ${message}`;
       case 'password':
-        return `Manejando el módulo de cambio de contraseña para el usuario ${phone}. Recibido: ${message}`;
+        return await this.resetPassword(phone, id);
       case 'deleteAccount':
         return this.deleteAccount(phone, message.body)
       default:
         userState.currentFlow = null;
         return 'Algo salió mal. Volviendo al menú principal.';
     }
+  }
+
+  async resetPassword(phone: string, id:string): Promise<string>{
+    try{
+      const url = `${hostService}/api/security-password?id=${id}&option=reset`;
+      const urlFecth = `${hostBackend}/api/workers/reset-password`;
+      const response = await fetch(urlFecth, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            url,
+            id
+          })
+        });
+  
+        const data = await response.json()
+        return `Se ha enviado un enlace de recuperación al correo: \n\n${data.email}`;
+    }catch (e){
+      return 'No se pudo enviar solicitar la recuperación'
+    } finally {
+      this.reset(phone)
+    }
+   
+
+   
   }
 
   reset(phone: string): string {

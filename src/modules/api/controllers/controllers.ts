@@ -162,9 +162,9 @@ const securityPasswordController = async (req: Request, res: Response) => {
         return;
     }
 
-    if (option === 'password') {
+    if (option === 'reset') {
         renderSecurityPassword(res, {
-            title: 'Establecer contraseña', message: 'Por favor establezca su nueva contraseña', link: undefined, action: '/api/url-password', id}); 
+            title: 'Establecer contraseña', message: 'Por favor establezca su nueva contraseña', link: undefined, action: '/api/reset-password', id}); 
     }
 
 
@@ -172,21 +172,23 @@ const securityPasswordController = async (req: Request, res: Response) => {
 };
 
 const urlPasswordController = async (req: Request, res: Response) => {
-    const phone = req.query.id as string;
-    const phoneUrlencoded = encodeURIComponent(phone);
+   
     try {
-        const url = `${hostService}/api/security-password?id=${phoneUrlencoded}&option=password`;
-        const response = await fetch(`${hostBackend}/api/workers/email/${phone}`, {
+       const {password, id} = req.body;
+        await fetch(`${hostBackend}/api/workers/${id}/update`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ phone, url }), 
+            body: JSON.stringify({ password: password }), 
         });
-        const data = await response.json();
-        res.status(200).send({ message: 'Email sent successfully'});
+      
+        renderSecurityPassword(res,{
+            title:'Contraseña restablecida', message: 'Tu contrasñea fue restablecida con exito, puedes seguir disfrutando de la plataforma', link: hostFrontend,
+            id: undefined, action: undefined
+       });
     } catch (error) {
-        res.status(500).send({ message: `Error sending email: ${error}` });
+        renderError(res,'Error', 'No se pudo restablecer la contraseña', '')
     }
 }
 
