@@ -2,8 +2,8 @@ import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/sequelize";
 
 interface WorkerAttributes {
-    id?: number;
-    name?: string;
+    id: string;
+    name: string;
     country: string;
     phone: string;
     lastMessage: Date,
@@ -15,6 +15,12 @@ interface WorkerAttributes {
 interface WorkerInstance extends Model<WorkerAttributes>, WorkerAttributes {}
 
 const Worker = sequelize.define<WorkerInstance>('Worker', {
+    id: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false,
+        unique: true,   
+    },
     name: {
         type: DataTypes.STRING,
         allowNull: true,

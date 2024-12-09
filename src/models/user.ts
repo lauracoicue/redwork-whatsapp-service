@@ -1,6 +1,25 @@
+import { Model } from "sequelize";
 import {sequelize, DataTypes }from "../config/sequelize";
 
-const User = sequelize.define('User', {
+interface UserAttributes {
+    id?: number;
+    name: string;
+    phone: string;
+    country: string;
+    awaitName: boolean;
+    idWorker?: string;
+    requestConversation?: boolean;
+}
+
+interface UserInstance extends Model<UserAttributes>, UserAttributes {}
+
+const User = sequelize.define<UserInstance>('User', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+    },
     name: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -8,8 +27,26 @@ const User = sequelize.define('User', {
     phone: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
+    },
+    country: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    awaitName: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        allowNull: false,
+    },
+    requestConversation: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+    },
+    idWorker: {
+        type: DataTypes.STRING,
+        allowNull: true,
     }
+
 });
 
 
