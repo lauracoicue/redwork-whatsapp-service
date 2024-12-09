@@ -187,6 +187,10 @@ const urlPasswordController = async (req: Request, res: Response) => {
             title:'Contraseña restablecida', message: 'Tu contrasñea fue restablecida con exito, puedes seguir disfrutando de la plataforma', link: hostFrontend,
             id: undefined, action: undefined
        });
+
+        const worker = await Worker.findOne({ where: { id: id } });
+        const phone = parsePhoneNumber(worker?.phone!, worker?.country!); 
+       await adminWhatsappService.sendMessage(phone, 'Tu contraseña ha sido restablecida con éxito');
     } catch (error) {
         renderError(res,'Error', 'No se pudo restablecer la contraseña', '')
     }
