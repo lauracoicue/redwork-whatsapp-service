@@ -175,21 +175,12 @@ class RegisterModule {
     if (this.#currentWorkersRegister[phone].step === this.#flows.length - 1) {
       try {
         const formattedPhoneNumber = normalizePhoneNumber(phone);
-        await Worker.create({
-          phone: formattedPhoneNumber.phone,
-          name: this.#newWorkers[phone]["full_name"]! as string,
-          country: formattedPhoneNumber.country,
-          modeEdit: false,
-          lastMessage: new Date(),
-          createdAt: new Date(),
-          awaitAvailability: false,
-        });
         const photo = this.#newWorkers[phone]["photo"];
         if (typeof photo === 'string') {
           console.log(photo.substring(0, 50));
         }
 
-        await fetchData({
+       const response = await fetchData({
           method: "POST",
           url: `${hostBackend}/api/workers/register`,
           headers: {
@@ -207,6 +198,16 @@ class RegisterModule {
             workImages: this.#newWorkers[phone]["work_images"]!,
             location: locationParser(Array.isArray(this.#newWorkers[phone]["location"]) ? this.#newWorkers[phone]["location"].join(",") : this.#newWorkers[phone]["location"]!),
         }});
+        await Worker.create({
+          id: response.workerId,
+          name: this.#newWorkers[phone]["full_name"]! as string,
+          phone: formattedPhoneNumber.phone,
+          country: formattedPhoneNumber.country,
+          modeEdit: false,
+          lastMessage: new Date(),
+          createdAt: new Date(),
+          awaitAvailability: false,
+        });
 
         delete this.#newWorkers[phone];
         delete this.#currentWorkersRegister[phone];
